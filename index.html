@@ -56,17 +56,10 @@ header h1 span{color:var(--gold)}
 /* SCANNER OVERLAY */
 .scanner-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:1000;flex-direction:column;align-items:center;justify-content:center}
 .scanner-overlay.active{display:flex}
-.scanner-box{position:relative;width:min(320px,90vw);background:#000;border-radius:16px;overflow:hidden}
-.scanner-box video{width:100%;display:block;border-radius:16px}
-.scanner-frame{position:absolute;inset:0;pointer-events:none}
-.scanner-frame::before{content:"";position:absolute;inset:20%;border:2px solid var(--gold);border-radius:8px}
-.scanner-line{position:absolute;left:20%;right:20%;height:2px;background:var(--gold);opacity:0.8;animation:scanline 2s linear infinite;top:20%}
-@keyframes scanline{0%{top:20%}100%{top:80%}}
-.scanner-label{color:rgba(255,255,255,0.7);font-size:13px;margin-top:16px;text-align:center;max-width:280px;line-height:1.5}
-.scanner-close{margin-top:20px;padding:12px 32px;background:var(--warm);border:none;border-radius:10px;font-family:"DM Sans",sans-serif;font-size:14px;font-weight:600;color:var(--brown);cursor:pointer}
-.scanner-status{color:var(--gold);font-size:12px;margin-top:8px;min-height:18px;text-align:center}
-
-/* SCANNER ERROR */
+.scanner-box{position:relative;width:min(340px,92vw);background:#000;border-radius:16px;overflow:hidden}
+#scanner-reader{width:100%;border-radius:16px;overflow:hidden}
+#scanner-reader video{border-radius:16px;width:100%}
+#scanner-reader img{display:none}
 .scanner-error{background:var(--red-light);border:1px solid var(--red);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--red);display:none;margin-top:4px}
 .scanner-error.visible{display:block}
 
@@ -178,12 +171,9 @@ footer{text-align:center;padding:20px;font-size:11px;color:var(--border);letter-
 <!-- SCANNER OVERLAY -->
 <div class="scanner-overlay" id="scanner-overlay">
   <div class="scanner-box">
-    <video id="scanner-video" autoplay muted playsinline></video>
-    <div class="scanner-frame">
-      <div class="scanner-line"></div>
-    </div>
+    <div id="scanner-reader"></div>
   </div>
-  <p class="scanner-label">Barcode in den goldenen Rahmen halten</p>
+  <p class="scanner-label">Barcode in den Rahmen halten</p>
   <p class="scanner-status" id="scanner-status"></p>
   <button class="scanner-close" id="scanner-close">Abbrechen</button>
 </div>
@@ -200,8 +190,8 @@ footer{text-align:center;padding:20px;font-size:11px;color:var(--border);letter-
 
 <footer>DORFLADEN SCHÖNGEISING &middot; EAN-NAN FINDER</footer>
 
-<!-- ZXing barcode library -->
-<script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
+<!-- Barcode scanner library -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
 <script>
 var RAW = [];
@@ -283,24 +273,21 @@ function updateHint() {
 // ── BARCODE SCANNER ───────────────────────────────────────────
 var scanBtn      = document.getElementById('scan-btn');
 var overlay      = document.getElementById('scanner-overlay');
-var video        = document.getElementById('scanner-video');
 var closeBtn     = document.getElementById('scanner-close');
 var scanStatus   = document.getElementById('scanner-status');
 var scannerError = document.getElementById('scanner-error');
-var codeReader   = null;
-var scanStream   = null;
+var html5QrCode  = null;
 
 scanBtn.addEventListener('click', function() {
   scannerError.classList.remove('visible');
-  if (typeof ZXing === 'undefined') {
-    showScannerError('Barcode-Bibliothek nicht verf\u00fcgbar. Bitte Internetverbindung pr\u00fcfen.');
+  if (typeof Html5Qrcode === 'undefined') {
+    showScannerError('Barcode-Bibliothek nicht verfügbar. Bitte Internetverbindung prüfen.');
     return;
   }
   startScanner();
 });
 
 closeBtn.addEventListener('click', stopScanner);
-
 overlay.addEventListener('click', function(e) {
   if (e.target === overlay) stopScanner();
 });
@@ -310,81 +297,69 @@ function startScanner() {
   scanBtn.classList.add('scanning');
   scanStatus.textContent = 'Kamera wird gestartet ...';
 
-  codeReader = new ZXing.BrowserMultiFormatReader();
+  document.getElementById('scanner-reader').innerHTML = '';
+  html5QrCode = new Html5Qrcode('scanner-reader');
 
-  codeReader.listVideoInputDevices()
-    .then(function(devices) {
-      // Prefer back camera
-      var deviceId = undefined;
-      for (var i = 0; i < devices.length; i++) {
-        var label = devices[i].label.toLowerCase();
-        if (label.indexOf('back') !== -1 || label.indexOf('r\u00fcck') !== -1 || label.indexOf('environment') !== -1) {
-          deviceId = devices[i].deviceId;
-          break;
-        }
-      }
-      // Fallback: last device (usually back on mobile)
-      if (!deviceId && devices.length > 0) {
-        deviceId = devices[devices.length - 1].deviceId;
-      }
+  var config = {
+    fps: 15,
+    qrbox: { width: 260, height: 130 },
+    aspectRatio: 1.333,
+    formatsToSupport: [
+      Html5QrcodeSupportedFormats.EAN_13,
+      Html5QrcodeSupportedFormats.EAN_8,
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.CODE_39,
+      Html5QrcodeSupportedFormats.UPC_A,
+      Html5QrcodeSupportedFormats.UPC_E
+    ]
+  };
 
-      var constraints = deviceId
-        ? { video: { deviceId: { exact: deviceId }, facingMode: 'environment' } }
-        : { video: { facingMode: 'environment' } };
-
-      return navigator.mediaDevices.getUserMedia(constraints)
-        .then(function(stream) {
-          scanStream = stream;
-          video.srcObject = stream;
-          scanStatus.textContent = 'Bereit \u2014 Barcode scannen ...';
-          return codeReader.decodeFromVideoElement(video, function(result, err) {
-            if (result) {
-              var code = result.getText();
-              stopScanner();
-              input.value = code;
-              clearBtn.classList.add('visible');
-              // Force EAN mode if numeric and long enough
-              if (/^\d{8,13}$/.test(code)) {
-                document.querySelectorAll('.mode-btn').forEach(function(b){b.classList.remove('active');});
-                document.querySelector('.mode-btn[data-mode="ean"]').classList.add('active');
-                mode = 'ean';
-                updateHint();
-              }
-              doSearch();
-              // Flash feedback
-              input.style.borderColor = 'var(--green-mid)';
-              input.style.boxShadow = '0 0 0 4px rgba(74,124,47,0.25)';
-              setTimeout(function(){
-                input.style.borderColor = '';
-                input.style.boxShadow = '';
-              }, 1500);
-            }
-          });
-        });
-    })
-    .catch(function(err) {
+  html5QrCode.start(
+    { facingMode: 'environment' },
+    config,
+    function(decodedText) {
       stopScanner();
-      var msg = 'Kamera-Zugriff nicht m\u00f6glich.';
-      if (err.name === 'NotAllowedError') msg = 'Kamera-Zugriff verweigert. Bitte in den Browser-Einstellungen erlauben.';
-      else if (err.name === 'NotFoundError') msg = 'Keine Kamera gefunden.';
-      else if (err.name === 'NotSupportedError') msg = 'HTTPS erforderlich f\u00fcr Kamera-Zugriff.';
-      showScannerError(msg);
-    });
+      input.value = decodedText;
+      clearBtn.classList.add('visible');
+      if (/^\d{8,13}$/.test(decodedText)) {
+        document.querySelectorAll('.mode-btn').forEach(function(b){b.classList.remove('active');});
+        document.querySelector('.mode-btn[data-mode="ean"]').classList.add('active');
+        mode = 'ean';
+        updateHint();
+      }
+      doSearch();
+      input.style.borderColor = 'var(--green-mid)';
+      input.style.boxShadow = '0 0 0 4px rgba(74,124,47,0.25)';
+      setTimeout(function(){
+        input.style.borderColor = '';
+        input.style.boxShadow = '';
+      }, 1500);
+    },
+    function() { /* scan errors normal — no barcode in frame */ }
+  ).then(function() {
+    scanStatus.textContent = 'Bereit — Barcode scannen ...';
+  }).catch(function(err) {
+    stopScanner();
+    var msg = 'Kamera-Zugriff nicht möglich.';
+    if (String(err).indexOf('NotAllowed') !== -1)
+      msg = 'Kamera-Zugriff verweigert — bitte in Safari-Einstellungen erlauben.';
+    else if (String(err).indexOf('NotFound') !== -1)
+      msg = 'Keine Kamera gefunden.';
+    showScannerError(msg);
+  });
 }
 
 function stopScanner() {
   overlay.classList.remove('active');
   scanBtn.classList.remove('scanning');
-  if (codeReader) {
-    try { codeReader.reset(); } catch(e) {}
-    codeReader = null;
+  if (html5QrCode) {
+    html5QrCode.stop().catch(function(){});
+    html5QrCode.clear();
+    html5QrCode = null;
   }
-  if (scanStream) {
-    scanStream.getTracks().forEach(function(t){t.stop();});
-    scanStream = null;
-  }
-  video.srcObject = null;
   scanStatus.textContent = '';
+  var reader = document.getElementById('scanner-reader');
+  if (reader) reader.innerHTML = '';
 }
 
 function showScannerError(msg) {
