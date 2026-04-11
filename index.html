@@ -296,14 +296,18 @@ function startScanner() {
   scanBtn.classList.add('scanning');
   scanStatus.textContent = 'Kamera wird gestartet ...';
 
-  // Use native BarcodeDetector if available (Chrome Android, some iOS 17+)
-  if (typeof BarcodeDetector !== 'undefined') {
+  // Diagnose: welche API ist verfügbar?
+  var nativeOk = typeof BarcodeDetector !== 'undefined';
+  var zxingOk  = typeof ZXingBrowser !== 'undefined';
+  scanStatus.textContent = 'BarcodeDetector: ' + nativeOk + ' | ZXing: ' + zxingOk;
+
+  if (nativeOk) {
     startNativeScanner();
-  } else if (typeof ZXingBrowser !== 'undefined') {
+  } else if (zxingOk) {
     startZXingScanner();
   } else {
     stopScanner();
-    showScannerError('Scanner-Bibliothek nicht geladen. Bitte Seite neu laden.');
+    showScannerError('Keine Scanner-Bibliothek verfügbar. BarcodeDetector: ' + nativeOk + ', ZXing: ' + zxingOk);
   }
 }
 
