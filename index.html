@@ -38,7 +38,7 @@ header h1 span{color:var(--gold)}
 .mode-btn:hover:not(.active){border-color:var(--green-mid);color:var(--green)}
 
 /* SEARCH ROW */
-.search-box{position:relative;display:flex;gap:8px;align-items:center}
+.search-box{position:relative}
 .search-input-wrap{position:relative;flex:1}
 .search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--text-soft);pointer-events:none;font-size:18px}
 #search-input{width:100%;padding:15px 44px 15px 46px;border:2px solid var(--border);border-radius:12px;font-family:"DM Sans",sans-serif;font-size:16px;background:#fff;color:var(--text);outline:none;transition:border-color 0.2s,box-shadow 0.2s;-webkit-appearance:none}
@@ -48,22 +48,22 @@ header h1 span{color:var(--gold)}
 .clear-btn.visible{display:block}
 
 /* SCANNER BUTTON */
-.scan-btn{flex-shrink:0;width:52px;height:52px;border-radius:12px;border:2px solid var(--green-mid);background:var(--green-light);color:var(--green);font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
-.scan-btn:hover{background:var(--green);color:#fff}
-.scan-btn.scanning{background:var(--green);color:#fff;border-color:var(--green);animation:pulse 1s infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(45,80,22,0.4)}50%{box-shadow:0 0 0 8px rgba(45,80,22,0)}}
+
+
+
+50%{box-shadow:0 0 0 8px rgba(45,80,22,0)}}
 
 /* SCANNER OVERLAY */
-.scanner-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:1000;flex-direction:column;align-items:center;justify-content:center}
-.scanner-overlay.active{display:flex}
-.scanner-box{position:relative;width:min(340px,92vw);background:#000;border-radius:16px;overflow:hidden}
-.scanner-box video{width:100%;display:block;border-radius:16px;max-height:60vh;object-fit:cover}
-.scan-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:70%;height:90px;border:2px solid var(--gold);border-radius:6px;pointer-events:none}
-.scan-frame::before,.scan-frame::after{content:"";position:absolute;width:20px;height:20px;border-color:var(--gold);border-style:solid}
-.scan-frame::before{top:-2px;left:-2px;border-width:3px 0 0 3px}
-.scan-frame::after{bottom:-2px;right:-2px;border-width:0 3px 3px 0}
-.scanner-error{background:var(--red-light);border:1px solid var(--red);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--red);display:none;margin-top:4px}
-.scanner-error.visible{display:block}
+
+
+
+
+
+
+
+
+
+
 
 .hint{margin-top:8px;font-size:12px;color:var(--text-soft);text-align:center;min-height:16px}
 
@@ -153,14 +153,10 @@ footer{text-align:center;padding:20px;font-size:11px;color:var(--border);letter-
     <button class="mode-btn" data-mode="name">Artikelname</button>
   </div>
   <div class="search-box">
-    <div class="search-input-wrap">
-      <span class="search-icon">&#128269;</span>
+        <span class="search-icon">&#128269;</span>
       <input type="text" id="search-input" placeholder="EAN, NAN oder Artikelbezeichnung ..." autocomplete="off" autocorrect="off" spellcheck="false" inputmode="search">
       <button class="clear-btn" id="clear-btn">&#x2715;</button>
-    </div>
-    <button class="scan-btn" id="scan-btn" title="Barcode scannen">&#128247;</button>
   </div>
-  <div class="scanner-error" id="scanner-error"></div>
   <p class="hint" id="hint">Daten werden geladen ...</p>
 </div>
 
@@ -171,10 +167,7 @@ footer{text-align:center;padding:20px;font-size:11px;color:var(--border);letter-
 </div>
 
 <!-- SCANNER OVERLAY -->
-<div class="scanner-overlay" id="scanner-overlay">
-  <div class="scanner-box">
-    <video id="scanner-video" autoplay muted playsinline></video>
-    <div class="scan-frame"></div>
+
   </div>
   <p class="scanner-label">Barcode mittig in den Rahmen halten</p>
   <p class="scanner-status" id="scanner-status"></p>
@@ -193,8 +186,8 @@ footer{text-align:center;padding:20px;font-size:11px;color:var(--border);letter-
 
 <footer>DORFLADEN SCHÖNGEISING &middot; EAN-NAN FINDER</footer>
 
-<!-- Barcode scanner library -->
-<!-- No external scanner library needed -->
+
+
 
 <script>
 var RAW = [];
@@ -274,120 +267,6 @@ function updateHint() {
 }
 
 // ── BARCODE SCANNER ───────────────────────────────────────────
-var scanBtn      = document.getElementById('scan-btn');
-var overlay      = document.getElementById('scanner-overlay');
-var videoEl      = document.getElementById('scanner-video');
-var closeBtn     = document.getElementById('scanner-close');
-var scanStatus   = document.getElementById('scanner-status');
-var scannerError = document.getElementById('scanner-error');
-var scanStream   = null;
-var scanTimer    = null;
-var detector     = null;
-
-scanBtn.addEventListener('click', function() {
-  scannerError.classList.remove('visible');
-  if (typeof BarcodeDetector === 'undefined') {
-    showScannerError('Barcode-Scanner wird von diesem Browser nicht unterstützt. Bitte iOS 17+ und Safari verwenden.');
-    return;
-  }
-  startScanner();
-});
-
-closeBtn.addEventListener('click', stopScanner);
-overlay.addEventListener('click', function(e) {
-  if (e.target === overlay) stopScanner();
-});
-
-function startScanner() {
-  overlay.classList.add('active');
-  scanBtn.classList.add('scanning');
-  scanStatus.textContent = 'Kamera wird gestartet ...';
-
-  BarcodeDetector.getSupportedFormats().then(function(formats) {
-    var wanted = ['ean_13','ean_8','code_128','upc_a','upc_e','code_39'];
-    var use = wanted.filter(function(f){ return formats.indexOf(f) !== -1; });
-    if (use.length === 0) use = formats;
-    detector = new BarcodeDetector({ formats: use });
-
-    return navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: 'environment' },
-        width:  { ideal: 1920 },
-        height: { ideal: 1080 }
-      }
-    });
-  }).then(function(stream) {
-    scanStream = stream;
-    videoEl.srcObject = stream;
-    return videoEl.play();
-  }).then(function() {
-    scanStatus.textContent = 'Bereit — Barcode scannen ...';
-    tick();
-  }).catch(function(err) {
-    stopScanner();
-    var s = String(err);
-    var msg = 'Fehler: ' + s.substring(0, 100);
-    if (s.indexOf('NotAllowed') !== -1 || s.indexOf('Permission') !== -1)
-      msg = 'Kamera-Zugriff verweigert — bitte in Safari-Einstellungen unter Datenschutz → Kamera erlauben.';
-    else if (s.indexOf('NotFound') !== -1)
-      msg = 'Keine Kamera gefunden.';
-    showScannerError(msg);
-  });
-}
-
-function tick() {
-  if (!scanStream || !detector) return;
-  if (videoEl.readyState < 2) {
-    scanTimer = setTimeout(tick, 100);
-    return;
-  }
-  detector.detect(videoEl).then(function(barcodes) {
-    if (barcodes && barcodes.length > 0) {
-      onCodeFound(barcodes[0].rawValue);
-    } else {
-      scanTimer = setTimeout(tick, 150);
-    }
-  }).catch(function() {
-    scanTimer = setTimeout(tick, 150);
-  });
-}
-
-function onCodeFound(code) {
-  stopScanner();
-  input.value = code;
-  clearBtn.classList.add('visible');
-  if (/^\d{8,13}$/.test(code)) {
-    document.querySelectorAll('.mode-btn').forEach(function(b){ b.classList.remove('active'); });
-    document.querySelector('.mode-btn[data-mode="ean"]').classList.add('active');
-    mode = 'ean';
-    updateHint();
-  }
-  doSearch();
-  input.style.borderColor = 'var(--green-mid)';
-  input.style.boxShadow = '0 0 0 4px rgba(74,124,47,0.25)';
-  setTimeout(function() {
-    input.style.borderColor = '';
-    input.style.boxShadow = '';
-  }, 1500);
-}
-
-function stopScanner() {
-  overlay.classList.remove('active');
-  scanBtn.classList.remove('scanning');
-  if (scanTimer) { clearTimeout(scanTimer); scanTimer = null; }
-  if (scanStream) {
-    scanStream.getTracks().forEach(function(t) { t.stop(); });
-    scanStream = null;
-  }
-  videoEl.srcObject = null;
-  detector = null;
-  scanStatus.textContent = '';
-}
-
-function showScannerError(msg) {
-  scannerError.textContent = msg;
-  scannerError.classList.add('visible');
-}
 
 // ── SEARCH LOGIC ──────────────────────────────────────────────
 function getPool() {
