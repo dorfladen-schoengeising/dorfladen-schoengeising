@@ -298,25 +298,18 @@ function startScanner() {
   scanStatus.textContent = 'Kamera wird gestartet ...';
 
   document.getElementById('scanner-reader').innerHTML = '';
-  html5QrCode = new Html5Qrcode('scanner-reader');
-
-  var config = {
-    fps: 15,
-    qrbox: { width: 260, height: 130 },
-    aspectRatio: 1.333,
-    formatsToSupport: [
-      Html5QrcodeSupportedFormats.EAN_13,
-      Html5QrcodeSupportedFormats.EAN_8,
-      Html5QrcodeSupportedFormats.CODE_128,
-      Html5QrcodeSupportedFormats.CODE_39,
-      Html5QrcodeSupportedFormats.UPC_A,
-      Html5QrcodeSupportedFormats.UPC_E
-    ]
-  };
+  
+  try {
+    html5QrCode = new Html5Qrcode('scanner-reader', { verbose: false });
+  } catch(e) {
+    stopScanner();
+    showScannerError('Scanner konnte nicht initialisiert werden: ' + e);
+    return;
+  }
 
   html5QrCode.start(
     { facingMode: 'environment' },
-    config,
+    { fps: 10, qrbox: { width: 250, height: 120 } },
     function(decodedText) {
       stopScanner();
       input.value = decodedText;
@@ -335,17 +328,20 @@ function startScanner() {
         input.style.boxShadow = '';
       }, 1500);
     },
-    function() { /* scan errors normal — no barcode in frame */ }
+    function(errorMsg) { /* scan errors are normal */ }
   ).then(function() {
     scanStatus.textContent = 'Bereit — Barcode scannen ...';
   }).catch(function(err) {
     stopScanner();
-    var msg = 'Kamera-Zugriff nicht möglich.';
-    if (String(err).indexOf('NotAllowed') !== -1)
-      msg = 'Kamera-Zugriff verweigert — bitte in Safari-Einstellungen erlauben.';
-    else if (String(err).indexOf('NotFound') !== -1)
-      msg = 'Keine Kamera gefunden.';
-    showScannerError(msg);
+    var msg = String(err);
+    var display = 'Kamera-Zugriff nicht möglich.';
+    if (msg.indexOf('NotAllowed') !== -1 || msg.indexOf('Permission') !== -1)
+      display = 'Kamera-Zugriff verweigert — bitte in den Safari-Einstellungen erlauben.';
+    else if (msg.indexOf('NotFound') !== -1)
+      display = 'Keine Kamera gefunden.';
+    else
+      display = 'Fehler: ' + msg.substring(0, 80);
+    showScannerError(display);
   });
 }
 
