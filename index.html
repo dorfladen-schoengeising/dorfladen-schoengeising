@@ -268,10 +268,10 @@ button.btn-danger{background:#fff;color:#c0392b;border:1.5px solid #f5c6c6;paddi
       <button class="clear-btn" id="clear-btn">&#x2715;</button>
     </div>
     <div class="search-modes">
-      <button class="mode-btn active" data-mode="all">Alle Felder<span class="mb-count">22.642</span></button>
+      <button class="mode-btn active" data-mode="all">Alle Felder<span class="mb-count" id="stat-all">–</span></button>
       <button class="mode-btn" data-mode="ean">EAN</button>
       <button class="mode-btn" data-mode="nan">NAN</button>
-      <button class="mode-btn" data-mode="stamm">Artikelstamm<span class="mb-count" id="stat-stamm">–</span><span class="mb-sub">1.257 mit Preisvergl.</span></button>
+      <button class="mode-btn" data-mode="stamm">Artikelstamm<span class="mb-count" id="stat-stamm">–</span><span class="mb-sub" id="stat-preisvergl">– mit Preisvergl.</span></button>
     </div>
     <p class="hint" id="hint">Mindestens 3 Zeichen eingeben</p>
   </div>
@@ -460,7 +460,10 @@ var PAGE = 20;
 
 // Stats — Artikelstamm-Zahl in den Button schreiben
 var stammCount = RAW.filter(function(r){return r.st===1}).length;
+document.getElementById('stat-all').textContent = RAW.length.toLocaleString('de');
 document.getElementById('stat-stamm').textContent = stammCount.toLocaleString('de');
+var preisverglCount = RAW.filter(function(r){return r.st===1 && r.kvk!==null && r.kvk!==undefined}).length;
+document.getElementById('stat-preisvergl').textContent = preisverglCount.toLocaleString('de') + ' mit Preisvergl.';
 
 var input = document.getElementById('search-input');
 input.addEventListener('input', function() {
