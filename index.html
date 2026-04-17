@@ -509,7 +509,7 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 
 function renderCard(r, i) {
   var delay = Math.min(i * 25, 300);
-  var hasPrice = r.kvk !== null && r.kvk !== undefined;
+  var hasPrice = (r.dl !== null && r.dl !== undefined) || (r.kvk !== null && r.kvk !== undefined);
   var mwstLabel = r.mw === 'E' ? '7% MwSt' : (r.mw === 'R' || r.mw === 'V') ? '19% MwSt' : '';
   var mwstClass = r.mw === 'E' ? 'mwst-e' : 'mwst-r';
   var priceHtml = '';
