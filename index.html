@@ -213,9 +213,16 @@ button.btn-danger{background:#fff;color:#c0392b;border:1.5px solid #f5c6c6;paddi
 @media print{
   .app-header,.app-nav,.view{display:none!important}
   #print-area{display:block!important}
+  #print-hint{display:none!important}
   body{background:white;margin:0;padding:0}
+  /* A4 Querformat: stelle sicher dass die Seite 297mm breit ist */
+  .label-sheet{
+    width:297mm!important;
+    height:210mm!important;
+    page-break-after:always;
+    overflow:hidden;
+  }
 }
-@page{size:297mm 210mm landscape;margin:0}
 #print-area{display:none}
 .label-sheet{width:297mm;height:210mm;padding-top:4mm;display:grid;grid-template-columns:74.25mm 74.25mm 74.25mm 74.25mm;grid-template-rows:47mm 47mm 47mm 47mm;row-gap:6mm;column-gap:0;font-family:Arial,Helvetica,sans-serif;page-break-after:always;box-sizing:border-box}
 .sheet-label:nth-child(4n){margin-left:5mm}
@@ -403,7 +410,7 @@ button.btn-danger{background:#fff;color:#c0392b;border:1.5px solid #f5c6c6;paddi
         <button class="btn-primary" onclick="printSheet()" style="margin-left:auto">Bogen drucken</button>
         <button class="btn-danger" onclick="clearQueue()">Warteschlange leeren</button>
       </div>
-      <p style="font-size:11px;color:var(--text-soft);margin-bottom:.75rem">Format: A4 Querformat — 74×47 mm, 4 Spalten × 4 Zeilen = 16 Etiketten pro Bogen</p>
+      <p style="font-size:11px;color:var(--text-soft);margin-bottom:.75rem">Format: A4 Querformat — 74×47 mm, 4×4 = 16 Etiketten pro Bogen · <strong style="color:#c00">Druckdialog: Querformat · 100% · kein Autodrehen</strong></p>
       <div class="sheet-queue">
         <div class="queue-header"><span>Artikel</span><span>Preis</span><span>EAN</span><span></span></div>
         <div id="queue-body"><div class="queue-empty">Noch keine Etiketten. Im Tab „Einzeletikett" auf „+ Zum Bogendruck" klicken.</div></div>
@@ -805,7 +812,13 @@ function renderSheetPreview() {
 function printSheet() {
   if (!queue.length){alert('Keine Etiketten in der Warteschlange.');return;}
   document.getElementById('print-area').innerHTML = buildSheetHTML(queue);
-  window.print();
+  // Druckhinweis anzeigen
+  var hint = document.getElementById('print-hint');
+  if (hint) hint.style.display = 'block';
+  setTimeout(function(){
+    window.print();
+    if (hint) setTimeout(function(){ hint.style.display='none'; }, 2000);
+  }, 300);
 }
 function printSingle() {
   var d = getFormData(), bc = getBarcodeDataURL(d.ean);
@@ -813,7 +826,12 @@ function printSingle() {
   for(var i=0;i<15;i++) empties += '<div class="sheet-label sl-empty"></div>';
   document.getElementById('print-area').innerHTML =
     '<div class="label-sheet"><div class="sheet-label">'+makeLabelHTML(d,bc)+'</div>'+empties+'</div>';
-  window.print();
+  var hint = document.getElementById('print-hint');
+  if (hint) hint.style.display = 'block';
+  setTimeout(function(){
+    window.print();
+    if (hint) setTimeout(function(){ hint.style.display='none'; }, 2000);
+  }, 300);
 }
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.getElementById('datum').value = new Date().toISOString().slice(0,10);
@@ -826,6 +844,12 @@ setTimeout(updateLabel,300);
 
 <!-- Print-area direkt unter body, außerhalb aller Views -->
 <div id="print-area"></div>
+<div id="print-hint" style="display:none">
+  <p style="font-family:Arial;font-size:14px;color:#c00;font-weight:bold;margin:0 0 8px">
+    ⚠️ Bitte im Druckdialog einstellen:<br>
+    Ausrichtung = <u>Querformat</u> · Größe = <u>100%</u> · Automatisch drehen = <u>AUS</u>
+  </p>
+</div>
 
 </body>
 </html>
