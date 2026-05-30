@@ -215,26 +215,30 @@ button.btn-danger{background:#fff;color:#c0392b;border:1.5px solid #f5c6c6;paddi
   #print-area{display:block!important}
   body{background:white;margin:0;padding:0}
 }
+@page{size:297mm 210mm landscape;margin:0}
 #print-area{display:none}
-.label-sheet{width:210mm;min-height:297mm;padding:6mm 0;display:grid;grid-template-columns:105mm 105mm;grid-template-rows:repeat(5,57mm);font-family:Arial,Helvetica,sans-serif;page-break-after:always}
-.sheet-label{width:105mm;height:57mm;padding:3mm 3.5mm;overflow:hidden;border:.2mm dashed #ccc;position:relative}
-.sl-top{font-size:6.5pt;color:#666;display:flex;gap:4pt;align-items:center;margin-bottom:1.5mm}
-.sl-badge{background:#b6f0c8;color:#1a6632;padding:.5pt 3pt;border-radius:1pt;font-size:6.5pt}
-.sl-body{display:flex;justify-content:space-between;align-items:flex-start}
-.sl-left{flex:1;padding-right:2mm}
-.sl-name1{font-size:11pt;font-weight:700;text-transform:uppercase;line-height:1.1;color:#111}
-.sl-name2{font-size:10pt;font-weight:700;text-transform:uppercase;line-height:1.1;color:#333}
+.label-sheet{width:297mm;height:210mm;padding-top:4mm;display:grid;grid-template-columns:74.25mm 74.25mm 74.25mm 74.25mm;grid-template-rows:47mm 47mm 47mm 47mm;row-gap:6mm;column-gap:0;font-family:Arial,Helvetica,sans-serif;page-break-after:always;box-sizing:border-box}
+.sheet-label:nth-child(4n){margin-left:5mm}
+.sheet-label{width:74.25mm;height:47mm;padding:0 1.5mm;overflow:hidden;position:relative;box-sizing:border-box}
+.sl-top{font-size:5.5pt;color:#999;display:flex;gap:3pt;align-items:center;height:5.5mm;padding-top:1mm}
+.sl-badge{background:#F5BC8A;color:#111;padding:.4pt 3pt;border-radius:1.5pt;font-size:5.5pt;font-weight:700}
+.sl-body{margin-top:3mm;display:flex;justify-content:space-between;align-items:flex-start}
+.sl-left{flex:1;padding-right:1mm}
+.sl-name1{font-size:11pt;font-weight:700;text-transform:uppercase;line-height:1.2;color:#111}
+.sl-name2{font-size:11pt;font-weight:700;text-transform:uppercase;line-height:1.2;color:#333}
 .sl-weight{font-size:9pt;font-weight:700;color:#555;margin-top:.5mm}
-.sl-price{text-align:right}
+.sl-price{text-align:right;padding-right:10mm}
 .sl-price-row{display:flex;align-items:flex-start;justify-content:flex-end;line-height:1}
-.sl-euro{font-size:38pt;font-weight:900;color:#111;letter-spacing:-1pt;font-family:Arial Black,Arial,sans-serif}
-.sl-right{display:flex;flex-direction:column;padding-top:3pt}
-.sl-cent{font-size:18pt;font-weight:900;color:#111;font-family:Arial Black,Arial,sans-serif}
-.sl-dot{width:4pt;height:4pt;background:#111;border-radius:50%;margin:2pt 0 1pt 1pt}
-.sl-bottom{display:flex;justify-content:space-between;align-items:flex-end;margin-top:1.5mm;border-top:.2mm solid #ddd;padding-top:1.5mm}
-.sl-ean{font-size:6pt;color:#444;margin-top:1pt;text-align:center}
-.sl-gp{font-size:8.5pt;font-weight:700;color:#111;align-self:flex-end}
-.sl-empty{border:.2mm dashed #eee}
+.sl-euro{font-size:44pt;font-weight:900;color:#111;letter-spacing:-1pt;font-family:Arial Black,Arial,sans-serif}
+.sl-right{display:flex;flex-direction:column;padding-top:4pt}
+.sl-cent{font-size:25pt;font-weight:900;color:#111;font-family:Arial Black,Arial,sans-serif}
+.sl-dot{width:5pt;height:5pt;background:#111;border-radius:50%;margin:2pt 0 1pt 1pt}
+.sl-gp{font-size:8.5pt;font-weight:700;color:#111;text-align:right;padding-right:10mm;margin-top:1mm}
+.sl-bottom{position:absolute;left:1.5mm;right:1.5mm;bottom:5mm;display:flex;justify-content:space-between;align-items:flex-end;height:12mm}
+.sl-barcode-col{display:flex;flex-direction:column;align-items:flex-start}
+.sl-ean{font-size:6pt;color:#555;font-weight:700;margin-bottom:1pt}
+.sl-mwst{font-size:6pt;font-weight:700;color:#888;padding-right:20mm;padding-bottom:2mm}
+.sl-empty{}
 </style>
 </head>
 <body>
@@ -395,11 +399,11 @@ button.btn-danger{background:#fff;color:#c0392b;border:1.5px solid #f5c6c6;paddi
       <div class="sheet-controls">
         <button class="btn-back" onclick="switchView('finder')">↩ Zurück zur Artikelliste</button>
         <span style="font-size:13px;font-weight:500">Warteschlange</span>
-        <span style="font-size:12px;color:var(--text-soft)" id="queue-count">0 von 10 Etiketten</span>
+        <span style="font-size:12px;color:var(--text-soft)" id="queue-count">0 von 16 Etiketten</span>
         <button class="btn-primary" onclick="printSheet()" style="margin-left:auto">Bogen drucken</button>
         <button class="btn-danger" onclick="clearQueue()">Warteschlange leeren</button>
       </div>
-      <p style="font-size:11px;color:var(--text-soft);margin-bottom:.75rem">Format: Avery L7160 / Zweckform 3481 — 105×57 mm, 2 Spalten × 5 Zeilen = 10 Etiketten pro Bogen</p>
+      <p style="font-size:11px;color:var(--text-soft);margin-bottom:.75rem">Format: A4 Querformat — 74×47 mm, 4 Spalten × 4 Zeilen = 16 Etiketten pro Bogen</p>
       <div class="sheet-queue">
         <div class="queue-header"><span>Artikel</span><span>Preis</span><span>EAN</span><span></span></div>
         <div id="queue-body"><div class="queue-empty">Noch keine Etiketten. Im Tab „Einzeletikett" auf „+ Zum Bogendruck" klicken.</div></div>
@@ -711,7 +715,7 @@ let queue = [];
 function updateQueueBadge() { document.getElementById('queue-badge').textContent = queue.length; }
 
 function addToSheet() {
-  if (queue.length >= 10) { alert('Der Bogen ist voll (max. 10 Etiketten).'); return; }
+  if (queue.length >= 16) { alert('Der Bogen ist voll (max. 16 Etiketten).'); return; }
   queue.push({...getFormData()});
   updateQueueBadge();
   renderQueue();
@@ -722,7 +726,7 @@ function clearQueue() { queue=[]; updateQueueBadge(); renderQueue(); renderSheet
 
 function renderQueue() {
   const body = document.getElementById('queue-body');
-  document.getElementById('queue-count').textContent = queue.length+' von 10 Etiketten';
+  document.getElementById('queue-count').textContent = queue.length+' von 16 Etiketten';
   if (!queue.length) { body.innerHTML='<div class="queue-empty">Noch keine Etiketten. Im Tab „Einzeletikett" auf „+ Zum Bogendruck" klicken.</div>'; return; }
   body.innerHTML = queue.map((item,i)=>`
     <div class="queue-row">
@@ -744,59 +748,58 @@ function updateQueuePrice(i, field, val) {
   renderSheetPreview();
 }
 
+// ── Bogendruck: A4 Querformat 4x4=16 (finale Parameter 29.05.2026) ──
 function makeLabelHTML(item, bcDataURL) {
-  const gp = item.gp_menge ? `${item.gp_menge} = ${parseFloat(item.gp_preis||0).toFixed(2).replace('.',',')}€` : '';
-  return `
-    <div class="sl-top">
-      <span>${item.artnr}</span><span>${item.filiale}</span><span>${item.lfd1}</span>
-      ${item.datum?`<span class="sl-badge">${fmtDate(item.datum)}</span>`:''}
-      <span>${item.lfd2}</span>
-    </div>
-    <div class="sl-body">
-      <div class="sl-left">
-        <div class="sl-name1">${item.name1}</div>
-        <div class="sl-name2">${item.name2}</div>
-        <div class="sl-weight">${item.gewicht}</div>
-      </div>
-      <div class="sl-price">
-        <div class="sl-price-row">
-          <span class="sl-euro">${item.euro}</span>
-          <div class="sl-right"><span class="sl-cent">${item.cent}</span><div class="sl-dot"></div></div>
-        </div>
-      </div>
-    </div>
-    <div class="sl-bottom">
-      <div>
-        ${bcDataURL?`<img src="${bcDataURL}" style="height:28pt;display:block">`:''}
-        <div class="sl-ean">${item.ean}</div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2pt">
-        ${item.mwkz?`<span style="font-size:6pt;font-weight:700;color:#888;letter-spacing:.04em">MwSt ${item.mwkz}</span>`:''}
-        ${gp?`<div class="sl-gp">${gp}</div>`:''}
-      </div>
-    </div>`;
+  var gp = item.gp_menge
+    ? item.gp_menge+' = '+parseFloat(item.gp_preis||0).toFixed(2).replace('.',',')+'€'
+    : '';
+  return '<div class="sl-top">'
+    +'<span>'+item.artnr+'</span><span>'+item.filiale+'</span><span>'+item.lfd1+'</span>'
+    +(item.datum?'<span class="sl-badge">'+fmtDate(item.datum)+'</span>':'')
+    +'<span>'+item.lfd2+'</span></div>'
+    +'<div class="sl-body">'
+      +'<div class="sl-left">'
+        +'<div class="sl-name1">'+item.name1+'</div>'
+        +'<div class="sl-name2">'+item.name2+'</div>'
+        +'<div class="sl-weight">'+item.gewicht+'</div>'
+      +'</div>'
+      +'<div class="sl-price">'
+        +'<div class="sl-price-row">'
+          +'<span class="sl-euro">'+item.euro+'</span>'
+          +'<div class="sl-right"><span class="sl-cent">'+item.cent+'</span><div class="sl-dot"></div></div>'
+        +'</div>'
+      +'</div>'
+    +'</div>'
+    +(gp?'<div class="sl-gp">'+gp+'</div>':'')
+    +'<div class="sl-bottom">'
+      +'<div class="sl-barcode-col">'
+        +'<div class="sl-ean">'+item.ean+'</div>'
+        +(bcDataURL?'<img src="'+bcDataURL+'" style="height:22pt;display:block">':'')
+      +'</div>'
+      +(item.mwkz?'<div class="sl-mwst">MwSt '+item.mwkz+'</div>':'')
+    +'</div>';
 }
 
 function getBarcodeDataURL(code) {
   if (!code||code.length<7) return '';
-  const c = document.createElement('canvas');
-  try { JsBarcode(c,code,{format:code.length<=8?'EAN8':'EAN13',width:1.2,height:28,displayValue:false,margin:0,background:'#ffffff',lineColor:'#000000'}); return c.toDataURL(); }
-  catch(e) { try{JsBarcode(c,code,{format:'CODE128',width:1.1,height:26,displayValue:false,margin:0,background:'#ffffff',lineColor:'#000000'});return c.toDataURL();}catch(e2){return '';} }
+  var c = document.createElement('canvas');
+  try { JsBarcode(c,code,{format:code.length<=8?'EAN8':'EAN13',width:1.2,height:22,displayValue:false,margin:0,background:'#ffffff',lineColor:'#000000'}); return c.toDataURL(); }
+  catch(e) { try{JsBarcode(c,code,{format:'CODE128',width:1.1,height:20,displayValue:false,margin:0,background:'#ffffff',lineColor:'#000000'});return c.toDataURL();}catch(e2){return '';} }
 }
 
 function buildSheetHTML(items) {
-  let cells = items.map(item => `<div class="sheet-label">${makeLabelHTML(item,getBarcodeDataURL(item.ean))}</div>`);
-  while (cells.length<10) cells.push('<div class="sheet-label sl-empty"></div>');
-  return `<div class="label-sheet">${cells.join('')}</div>`;
+  var cells = items.map(function(item){ return '<div class="sheet-label">'+makeLabelHTML(item,getBarcodeDataURL(item.ean))+'</div>'; });
+  while (cells.length < 16) cells.push('<div class="sheet-label sl-empty"></div>');
+  return '<div class="label-sheet">'+cells.join('')+'</div>';
 }
 
 function renderSheetPreview() {
-  const wrap = document.getElementById('sheet-preview-wrap');
+  var wrap = document.getElementById('sheet-preview-wrap');
   if (!queue.length){wrap.innerHTML='<p style="font-size:12px;color:var(--text-soft);padding:1rem">Noch keine Etiketten in der Warteschlange.</p>';return;}
-  const sheetHTML = buildSheetHTML(queue);
-  const scale = Math.min(0.55,(wrap.offsetWidth||600)/794);
-  wrap.innerHTML = `<div style="transform:scale(${scale});transform-origin:top left;width:794px">${sheetHTML}</div>`;
-  wrap.style.height = Math.round(1123*scale+20)+'px';
+  var sheetHTML = buildSheetHTML(queue);
+  var scale = Math.min(0.48,(wrap.offsetWidth||600)/1122);
+  wrap.innerHTML = '<div style="transform:scale('+scale+');transform-origin:top left;width:1122px">'+sheetHTML+'</div>';
+  wrap.style.height = Math.round(794*scale+20)+'px';
 }
 
 function printSheet() {
@@ -805,11 +808,13 @@ function printSheet() {
   window.print();
 }
 function printSingle() {
-  const d = getFormData(), bc = getBarcodeDataURL(d.ean);
-  document.getElementById('print-area').innerHTML = `<div class="label-sheet"><div class="sheet-label">${makeLabelHTML(d,bc)}</div>${Array(9).fill('<div class="sheet-label sl-empty"></div>').join('')}</div>`;
+  var d = getFormData(), bc = getBarcodeDataURL(d.ean);
+  var empties = '';
+  for(var i=0;i<15;i++) empties += '<div class="sheet-label sl-empty"></div>';
+  document.getElementById('print-area').innerHTML =
+    '<div class="label-sheet"><div class="sheet-label">'+makeLabelHTML(d,bc)+'</div>'+empties+'</div>';
   window.print();
 }
-
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.getElementById('datum').value = new Date().toISOString().slice(0,10);
 document.querySelectorAll('#view-eti input').forEach(el=>el.addEventListener('input',updateLabel));
